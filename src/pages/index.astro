@@ -1,11 +1,64 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import WikiLayout from '../layouts/WikiLayout.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const allPages = await getCollection('wiki');
+
+// Group by category
+const grouped = new Map<string, typeof allPages>();
+for (const page of allPages) {
+  const cat = page.data.category ?? 'General';
+  if (!grouped.has(cat)) {
+    grouped.set(cat, []);
+  }
+  grouped.get(cat)!.push(page);
+}
+
+const sortedCategories = Array.from(grouped.keys()).sort((a, b) => {
+  if (a === 'General') return -1;
+  if (b === 'General') return 1;
+  return a.localeCompare(b);
+});
+
+for (const [cat, pages] of grouped) {
+  pages.sort((a, b) => a.data.title.localeCompare(b.data.title));
+}
+
+function slugify(filePath: string): string {
+  return filePath.replace(/\.md$/, '');
+}
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<WikiLayout title="Hermes Wiki">
+  <div style="max-width: 960px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 48px;">
+      <h1 style="font-size: 36px; margin-bottom: 8px;">📖 Hermes Wiki</h1>
+      <p style="color: var(--text-muted); font-size: 16px;">A knowledge base for the Hermes agent ecosystem</p>
+      <p style="color: var(--text-dim); font-size: 13px; margin-top: 8px;">{allPages.length} pages across {sortedCategories.length} categories</p>
+    </div>
+
+    {sortedCategories.map(category => (
+      <div style="margin-bottom: 40px;">
+        <h2 style="font-size: 18px; color: var(--accent); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+          {category}
+        </h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+          {grouped.get(category)!.map(page => {
+            const slug = slugify(page.id);
+            const href = `/wiki/${slug}`;
+            return (
+              <a href={href} style="display: block; padding: 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; text-decoration: none; transition: all 0.15s;">
+                <div style="font-size: 14px; font-weight: 600; color: var(--heading); margin-bottom: 4px;">
+                  {page.data.title}
+                </div>
+                <div style="font-size: 12px; color: var(--text-dim);">
+                  {slug}
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    ))}
+  </div>
+</WikiLayout>

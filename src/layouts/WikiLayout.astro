@@ -1,0 +1,284 @@
+---
+import WikiNav from '../components/WikiNav.astro';
+
+export interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} — Hermes Wiki</title>
+    <meta name="description" content={description ?? title} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      :root {
+        --bg: #0f1117;
+        --bg-card: #181a24;
+        --bg-sidebar: #12141e;
+        --bg-hover: #1e2030;
+        --border: #2a2d3e;
+        --text: #e1e3eb;
+        --text-muted: #8b8fa3;
+        --text-dim: #5a5e72;
+        --accent: #7c7aff;
+        --accent-glow: #7c7aff33;
+        --accent-hover: #9a98ff;
+        --heading: #f0f1f5;
+        --code-bg: #1a1c2a;
+        --code-text: #c9cde0;
+        --blockquote-border: #7c7aff;
+        --blockquote-bg: #1a1c2a55;
+        --link: #7c7aff;
+        --link-hover: #9a98ff;
+        --sidebar-width: 280px;
+        --header-height: 56px;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.7;
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: var(--sidebar-width);
+        background: var(--bg-sidebar);
+        border-right: 1px solid var(--border);
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        overflow-y: auto;
+        flex-shrink: 0;
+        padding: 24px 0;
+      }
+      .sidebar::-webkit-scrollbar { width: 4px; }
+      .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+      .sidebar-header {
+        padding: 0 20px 16px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 12px;
+      }
+      .sidebar-header a {
+        text-decoration: none;
+        color: inherit;
+      }
+      .sidebar-header h2 {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--heading);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .sidebar-header p {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-top: 4px;
+      }
+
+      .nav-section-title {
+        padding: 16px 20px 6px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-dim);
+      }
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 20px;
+        font-size: 14px;
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: all 0.15s ease;
+        border-left: 2px solid transparent;
+      }
+      .nav-link:hover {
+        background: var(--bg-hover);
+        color: var(--text);
+      }
+      .nav-link[aria-current="page"] {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: var(--accent-glow);
+      }
+      .nav-icon { font-size: 14px; width: 20px; text-align: center; }
+
+      /* Main content */
+      .main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .content {
+        max-width: 860px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 48px 40px 80px;
+      }
+
+      /* Typography */
+      .content h1 {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--heading);
+        margin-bottom: 16px;
+        letter-spacing: -0.02em;
+        line-height: 1.3;
+      }
+      .content h2 {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--heading);
+        margin-top: 36px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+      }
+      .content h3 {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--heading);
+        margin-top: 28px;
+        margin-bottom: 8px;
+      }
+      .content h4 {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--heading);
+        margin-top: 20px;
+        margin-bottom: 6px;
+      }
+      .content p { margin-bottom: 16px; }
+      .content a {
+        color: var(--link);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: border-color 0.15s;
+      }
+      .content a:hover { color: var(--link-hover); border-bottom-color: var(--link-hover); }
+      .content strong { color: var(--heading); font-weight: 600; }
+      .content ul, .content ol { margin-bottom: 16px; padding-left: 24px; }
+      .content li { margin-bottom: 6px; }
+      .content li > ul, .content li > ol { margin-bottom: 0; margin-top: 4px; }
+      .content blockquote {
+        border-left: 3px solid var(--blockquote-border);
+        background: var(--blockquote-bg);
+        padding: 12px 20px;
+        margin: 16px 0;
+        border-radius: 0 8px 8px 0;
+        color: var(--text-muted);
+      }
+      .content blockquote p:last-child { margin-bottom: 0; }
+      .content hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 32px 0;
+      }
+      .content img {
+        max-width: 100%;
+        border-radius: 8px;
+        margin: 16px 0;
+      }
+
+      /* Code */
+      .content code {
+        font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, monospace;
+        font-size: 13px;
+        background: var(--code-bg);
+        color: var(--code-text);
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+      .content pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px 20px;
+        overflow-x: auto;
+        margin: 16px 0;
+      }
+      .content pre code {
+        background: none;
+        padding: 0;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      .content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 14px;
+      }
+      .content th, .content td {
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        text-align: left;
+      }
+      .content th {
+        background: var(--bg-card);
+        color: var(--heading);
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .content tr:nth-child(even) { background: #141620; }
+      .content tr:hover { background: var(--bg-hover); }
+
+      /* Tasks / checkboxes */
+      .content input[type="checkbox"] {
+        accent-color: var(--accent);
+        margin-right: 6px;
+      }
+
+      /* Back link */
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--text-dim);
+        text-decoration: none;
+        margin-bottom: 24px;
+        transition: color 0.15s;
+      }
+      .back-link:hover { color: var(--accent); }
+
+      @media (max-width: 768px) {
+        .sidebar { display: none; }
+        .content { padding: 24px 20px 60px; }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <a href="/">
+          <h2>📖 Hermes Wiki</h2>
+          <p>Knowledge base</p>
+        </a>
+      </div>
+      <WikiNav />
+    </nav>
+    <div class="main">
+      <div class="content">
+        <slot />
+      </div>
+    </div>
+  </body>
+</html>

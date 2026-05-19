@@ -1,0 +1,49 @@
+---
+import { getCollection } from 'astro:content';
+
+const allPages = await getCollection('wiki');
+
+// Group pages by category
+const grouped = new Map<string, typeof allPages>();
+for (const page of allPages) {
+  const cat = page.data.category ?? 'General';
+  if (!grouped.has(cat)) {
+    grouped.set(cat, []);
+  }
+  grouped.get(cat)!.push(page);
+}
+
+// Sort categories: General first, then alphabetically
+const sortedCategories = Array.from(grouped.keys()).sort((a, b) => {
+  if (a === 'General') return -1;
+  if (b === 'General') return 1;
+  return a.localeCompare(b);
+});
+
+// Sort pages within each category by title
+for (const [cat, pages] of grouped) {
+  pages.sort((a, b) => a.data.title.localeCompare(b.data.title));
+}
+
+function slugify(filePath: string): string {
+  // Convert file path to URL slug
+  // e.g., "acps-workflow/commands/plan.md" -> "acps-workflow/commands/plan"
+  return filePath.replace(/\.md$/, '');
+}
+---
+
+{sortedCategories.map(category => (
+  <div>
+    <div class="nav-section-title">{category}</div>
+    {grouped.get(category)!.map(page => {
+      const slug = slugify(page.id);
+      const href = `/wiki/${slug}`;
+      return (
+        <a class="nav-link" href={href} aria-current={Astro.url.pathname === href ? 'page' : undefined}>
+          <span class="nav-icon">📄</span>
+          {page.data.title}
+        </a>
+      );
+    })}
+  </div>
+))}

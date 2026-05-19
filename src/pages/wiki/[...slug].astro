@@ -1,0 +1,41 @@
+---
+import { getCollection, render } from 'astro:content';
+import WikiLayout from '../../layouts/WikiLayout.astro';
+
+export async function getStaticPaths() {
+  const wikiPages = await getCollection('wiki');
+  return wikiPages.map((page) => {
+    const slug = page.id;
+    return {
+      params: { slug },
+      props: { page },
+    };
+  });
+}
+
+const { page } = Astro.props;
+const { Content, headings } = await render(page);
+const { title, category } = page.data;
+const slug = page.id;
+---
+
+<WikiLayout title={title}>
+  <a href="/" class="back-link">← Back to Wiki</a>
+
+  <article>
+    <header style="margin-bottom: 32px;">
+      {category && <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 600;">{category}</span>}
+      <h1>{title}</h1>
+    </header>
+
+    <div class="wiki-content">
+      <Content />
+    </div>
+  </article>
+</WikiLayout>
+
+<style>
+  .wiki-content {
+    max-width: 100%;
+  }
+</style>
