@@ -1,0 +1,19 @@
+name: Test Build Release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: pipeline-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: danielvm-git/.github/.github/workflows/test-build-release-static.yml@main
+    with:
+      site_url: "https://danielvm-git.github.io/astro-wiki"
+      release_tool: "big-release"
+    secrets: inherit
