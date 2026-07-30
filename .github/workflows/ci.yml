@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    uses: danielvm-git/.github/.github/workflows/test-build-release-static.yml@main
+    uses: danielvm-git/.github/.github/workflows/test-build-release-static.yml@2e1bd382ecb9f1b96febbb708c8bace2b6408014
     with:
       site_url: "https://danielvm-git.github.io/astro-wiki"
       release_tool: "big-release"
