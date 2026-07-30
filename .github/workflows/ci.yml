@@ -12,4 +12,3 @@ jobs:
     with:
       site_url: "https://danielvm-git.github.io/astro-wiki"
       release_tool: "big-release"
-    secrets: inherit
