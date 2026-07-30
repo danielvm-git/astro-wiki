@@ -7,13 +7,9 @@ on:
     branches: [main]
 
 jobs:
-  test:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run build
+  ci:
+    uses: danielvm-git/.github/.github/workflows/test-build-release-static.yml@v1
+    with:
+      site_url: "https://danielvm-git.github.io/astro-wiki"
+      release_tool: "big-release"
+    secrets: inherit
