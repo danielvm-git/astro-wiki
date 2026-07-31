@@ -22,18 +22,22 @@ jobs:
     timeout-minutes: 10
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: https://danielvm-git.github.io/astro-wiki
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
         with:
-          node-version: 22
-          cache: npm
+          name: site-build
+          path: ./dist
+          run-id: ${{ github.event.workflow_run.id }}
 
-      - run: npm ci
-
-      - run: npm run build
+      - name: Verify artifact
+        run: |
+          if [ ! -d dist ] || [ -z "$(ls -A dist)" ]; then
+            echo "::error::Build artifact missing or empty"
+            exit 1
+          fi
+          echo "Artifact verified: $(find dist -type f | wc -l) files"
 
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -42,3 +46,18 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Health check
+        run: |
+          SITE_URL="https://danielvm-git.github.io/astro-wiki"
+          for i in 1 2 3 4 5 6 7 8; do
+            STATUS=$(curl -s -o /dev/null -w '%{http_code}' "$SITE_URL" || echo "000")
+            if [ "$STATUS" = "200" ] || [ "$STATUS" = "301" ] || [ "$STATUS" = "302" ]; then
+              echo "Site LIVE (HTTP $STATUS)"
+              exit 0
+            fi
+            echo "Attempt $i/8: HTTP $STATUS, waiting 10s..."
+            sleep 10
+          done
+          echo "::error::Health check failed after 8 attempts"
+          exit 1
