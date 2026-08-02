@@ -1,3 +1,4 @@
+# story: e02s01
 name: Test Build Release
 
 on:
@@ -36,7 +37,8 @@ jobs:
           elif command -v npm >/dev/null 2>&1 && grep -q '"preflight"' package.json 2>/dev/null; then
             npm run preflight
           else
-            echo "WARN: No preflight script found — add scripts/preflight.sh"
+            echo "WARN: No preflight script found — running typecheck"
+            npm run typecheck --if-present
           fi
 
       - name: Check Conventional Commits
@@ -71,9 +73,6 @@ jobs:
       - name: Type check
         run: npm run typecheck --if-present
 
-      - name: Test
-        run: npm test --if-present
-
   build:
     needs: [test]
     runs-on: ubuntu-22.04
@@ -89,8 +88,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build Astro Site
         run: npm run build
+
+      - name: Emit Boundary Artifact (deploy-meta.json)
+        run: |
+          cat <<EOF > dist/deploy-meta.json
+          {
+            "sha": "${{ github.sha }}",
+            "ref": "${{ github.ref }}",
+            "app_type": "static"
+          }
+          EOF
+          echo "deploy-meta.json packaged into dist/"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4

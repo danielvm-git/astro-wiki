@@ -1,0 +1,10 @@
+initiative: CI/CD Template Consolidation & Grimoire Audit Compliance
+version: 1.0.0
+in_scope:
+  - Consolidate workflows into central danielvm-git/.github 3-tier architecture (ci -> verify -> deploy)
+  - Single-build artifact boundary with deploy-meta.json
+  - GitHub Pages deployment via decoupled workflow_run trigger
+  - Full Grimoire quality checks compliance (Gitleaks, permissions, pinned actions, health assertion)
+  - Close GitHub Issue #1
+out_of_scope:
+  - Modifying Astro site content or theme

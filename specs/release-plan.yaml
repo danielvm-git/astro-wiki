@@ -1,0 +1,14 @@
+project: astro-wiki
+version: 1.0.0
+epics:
+  - id: e02-cicd-template-consolidation
+    title: CI/CD Template Consolidation & Grimoire Compliance
+    status: in-progress
+    wsjf:
+      business_value: 8
+      time_criticality: 8
+      risk_reduction: 8
+      job_size: 2
+      score: 12.0
+    stories:
+      - e02s01

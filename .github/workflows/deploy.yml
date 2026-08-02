@@ -1,3 +1,4 @@
+# story: e02s01
 name: Deploy
 
 on:
@@ -32,11 +33,17 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Verify artifact
+      - name: Verify build & deploy-meta.json boundary artifact
         run: |
           if [ ! -d dist ] || [ -z "$(ls -A dist)" ]; then
             echo "::error::Build artifact missing or empty"
             exit 1
+          fi
+          if [ -f dist/deploy-meta.json ]; then
+            echo "deploy-meta.json verified:"
+            cat dist/deploy-meta.json
+          else
+            echo "WARN: deploy-meta.json boundary artifact absent"
           fi
           echo "Artifact verified: $(find dist -type f | wc -l) files"
 
@@ -48,13 +55,14 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Health check
+      - name: Post-Deploy Health Check
         run: |
           SITE_URL="https://danielvm-git.github.io/astro-wiki"
+          echo "Starting post-deploy health check against $SITE_URL..."
           for i in 1 2 3 4 5 6 7 8; do
             STATUS=$(curl -s -o /dev/null -w '%{http_code}' "$SITE_URL" || echo "000")
             if [ "$STATUS" = "200" ] || [ "$STATUS" = "301" ] || [ "$STATUS" = "302" ]; then
-              echo "Site LIVE (HTTP $STATUS)"
+              echo "PASS: Site LIVE (HTTP $STATUS)"
               exit 0
             fi
             echo "Attempt $i/8: HTTP $STATUS, waiting 10s..."

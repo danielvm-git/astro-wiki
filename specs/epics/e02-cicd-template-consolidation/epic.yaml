@@ -1,0 +1,41 @@
+epic_id: e02-cicd-template-consolidation
+title: CI/CD Template Consolidation & Grimoire Compliance
+closes_issues: [1]
+stories:
+  - id: e02s01
+    title: Implement Centralized Template CI/CD Pipeline & Enforce Grimoire Audit Compliance
+    status: in-progress
+    wsjf: 12.0
+    gherkin_ac: |
+      Feature: Centralized CI/CD & Grimoire Compliance
+        Scenario: CI Build & Artifact Preservation
+          Given a push or pull request to the main branch
+          When the CI workflow triggers
+          Then it must execute linting, typechecking, and build using Node 22 with npm caching
+          And produce a single-build 'site-build' artifact containing 'dist/' and 'deploy-meta.json'
+
+        Scenario: Decoupled CD Trigger & Health Check
+          Given a successful CI run on the main branch
+          When the deploy workflow triggers via workflow_run
+          Then it downloads the 'site-build' artifact without rebuilding
+          And deploys to GitHub Pages
+          And verifies HTTP status 200/301/302 on the live site URL
+
+        Scenario: Grimoire Security & Audit Pass
+          Given the updated workflow files in .github/workflows/
+          Then all third-party actions must be pinned to explicit tags/SHAs
+          And every job/workflow must contain an explicit permissions block
+          And no secrets or AI attribution headers (Co-authored-by) are committed
+    tasks:
+      - id: e02s01-t1
+        title: Update CI workflow test-build-release.yml with single-build artifact boundary and deploy-meta.json
+        verify: "test -f .github/workflows/test-build-release.yml"
+      - id: e02s01-t2
+        title: Update CD workflow deploy.yml with workflow_run trigger and live health check
+        verify: "test -f .github/workflows/deploy.yml"
+      - id: e02s01-t3
+        title: Audit permissions, pinned actions, gitleaks, and conventional commits
+        verify: "npm run typecheck && npm run build"
+      - id: e02s01-t4
+        title: Commit and release with Closes #1
+        verify: "git log -n 1"
